@@ -1,0 +1,112 @@
+﻿@page "/loanbook/{bookId:int}"
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Mượn Sách</PageTitle>
+
+<h3>Mượn Sách</h3>
+
+<EditForm Model="@newLoan" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Mã Sách</label>
+        <InputNumber class="form-control" @bind-Value="newLoan.BookID" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Mã Thành Viên</label>
+        <InputNumber class="form-control" @bind-Value="newLoan.MemberID" @oninput="LoadMemberName" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(memberName))
+    {
+        <div class="mb-3">
+            <label class="form-label">Tên Thành Viên</label>
+            <input class="form-control" value="@memberName" disabled />
+        </div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">Ngày Mượn</label>
+        <InputDate class="form-control" @bind-Value="newLoan.LoanDate" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Mượn Sách</button>
+</EditForm>
+
+<button class="btn btn-secondary mt-3" @onclick="NavigateToViewLoans">Xem Sách Đã Mượn</button>
+<button class="btn btn-secondary mt-3" @onclick="NavigateToBooks">Trở về trang sách</button>
+
+@code {
+    [Parameter] public int bookId { get; set; }
+    private Loan newLoan = new Loan();
+    private string memberName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        newLoan.BookID = bookId;
+        newLoan.LoanDate = DateTime.Now;
+        newLoan.Status = "Mượn";
+    }
+
+    private async Task LoadMemberName(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int memberId))
+        {
+            var member = await DbContext.Members.FindAsync(memberId);
+
+            if (member != null)
+            {
+                memberName = $"{member.FirstName} {member.LastName}";
+            }
+            else
+            {
+                memberName = string.Empty;
+            }
+        }
+        else
+        {
+            memberName = string.Empty;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var book = await DbContext.Books.FindAsync(newLoan.BookID);
+        if (book != null && book.Available > 0)
+        {
+            book.Available -= 1;
+            DbContext.Loans.Add(newLoan);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo($"/viewloans/{newLoan.MemberID}");
+        }
+        else
+        {
+            // Handle book not available case
+        }
+    }
+
+    private void NavigateToViewLoans()
+    {
+        if (newLoan.MemberID > 0)
+        {
+            Console.WriteLine($"Navigating to /viewloans/{newLoan.MemberID}"); // Diagnostic message
+            Navigation.NavigateTo($"/viewloans/{newLoan.MemberID}");
+        }
+        else
+        {
+            Console.WriteLine("MemberID is not provided or invalid"); // Diagnostic message
+                                                                      // Handle case where MemberID is not provided or invalid
+        }
+    }
+
+    private void NavigateToBooks()
+    {
+        Navigation.NavigateTo("/books");
+    }
+}

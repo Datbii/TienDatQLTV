@@ -1,0 +1,144 @@
+﻿.navbar-toggler {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.top-row {
+    height: 3.5rem;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+}
+
+.oi {
+    width: 2rem;
+    font-size: 1.1rem;
+    vertical-align: text-top;
+    top: -2px;
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+    .nav-item:first-of-type {
+        padding-top: 1rem;
+    }
+
+    .nav-item:last-of-type {
+        padding-bottom: 1rem;
+    }
+
+    .nav-item ::deep a {
+        color: #d7d7d7;
+        border-radius: 4px;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        line-height: 3rem;
+    }
+
+.nav-item ::deep a.active {
+    background-color: rgba(255,255,255,0.25);
+    color: white;
+}
+
+.nav-item ::deep a:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+}
+
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .collapse {
+        /* Never collapse the sidebar for wide screens */
+        display: block;
+    }
+}
+/* Add this CSS to your site's stylesheet or directly within a <style> tag in your main layout file */
+.navbar {
+    background-color: #343a40; /* Dark background for the navbar */
+}
+
+.navbar-brand {
+    color: white; /* White color for the brand name */
+    font-size: 1.5em; /* Adjust the font size */
+}
+
+.navbar-toggler {
+    border-color: rgba(255,255,255,.1);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,..."); /* Custom icon if needed */
+}
+
+.navbar-nav {
+    width: 200px; /* Set a fixed width for the navbar */
+    background-color: #343a40; /* Ensure the background matches the top bar */
+    color: white;
+}
+
+.nav-link {
+    color: white;
+    font-size: 1.2em; /* Increase the font size for readability */
+}
+
+    .nav-link:hover {
+        background-color: #495057; /* Highlight on hover */
+    }
+
+.oi {
+    margin-right: 8px; /* Space between icon and text */
+}
+/* Thêm CSS này vào tệp stylesheet của trang web của bạn hoặc trực tiếp trong thẻ <style> trong tệp bố cục chính của bạn */
+.navbar {
+    background-color: #343a40; /* Màu nền tối cho thanh navbar */
+    border-bottom: 2px solid #4CAF50; /* Thêm đường viền dưới để tạo điểm nhấn */
+}
+
+.navbar-brand {
+    color: white; /* Màu trắng cho tên thương hiệu */
+    font-size: 1.5em; /* Điều chỉnh kích thước font chữ */
+}
+
+.navbar-toggler {
+    border-color: rgba(255,255,255,.1);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,..."); /* Icon tùy chỉnh nếu cần */
+}
+
+.navbar-nav {
+    width: 200px; /* Đặt chiều rộng cố định cho thanh navbar */
+    background-color: #343a40; /* Đảm bảo màu nền khớp với thanh trên cùng */
+    color: white;
+    padding-top: 10px; /* Thêm khoảng cách trên cùng */
+}
+
+.nav-link {
+    color: white;
+    font-size: 1.2em; /* Tăng kích thước font chữ để dễ đọc */
+    padding: 10px; /* Thêm khoảng cách bên trong */
+    border-radius: 5px; /* Thêm góc bo tròn */
+    transition: background-color 0.3s ease; /* Hiệu ứng chuyển động khi hover */
+}
+
+    .nav-link:hover {
+        background-color: #495057; /* Làm nổi bật khi hover */
+        color: #4CAF50; /* Thay đổi màu chữ khi hover */
+    }
+
+.oi {
+    margin-right: 8px; /* Khoảng cách giữa icon và văn bản */
+}
+
+.navbar-nav .nav-item {
+    margin-bottom: 10px; /* Thêm khoảng cách giữa các mục */
+}

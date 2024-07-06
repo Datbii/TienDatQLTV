@@ -1,0 +1,202 @@
+﻿@page "/books"
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-2 category-list">
+            <h5>Thể Loại</h5>
+            @if (categories != null)
+            {
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-action" @onclick="@(e => FilterByCategory(null))">Tất cả</li>
+                    @foreach (var category in categories)
+                    {
+                        <li class="list-group-item list-group-item-action" @onclick="@(e => FilterByCategory(category.CategoryID))">@category.CategoryName</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p><em>Loading...</em></p>
+            }
+        </div>
+        <div class="col-md-10">
+            <h3 class="text-center mb-4">Sách</h3>
+
+            <div class="input-group mb-3">
+                <input type="text" @bind="searchTerm" placeholder="Tìm kiếm sách..." class="form-control" />
+                <button @onclick="SearchBooks" class="btn btn-primary">Tìm kiếm</button>
+                <button @onclick="ResetSearch" class="btn btn-secondary">Reset</button>
+            </div>
+
+            @if (books == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var book in books)
+                    {
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <img src="@book.ImageUrl" class="card-img-top" alt="Hình ảnh sách" style="height: 200px; object-fit: cover;">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">@book.Title</h5>
+                                    <p class="card-text">@book.Author.AuthorName</p>
+                                    <p class="card-text">@book.Publisher</p>
+                                    <p class="card-text"><small class="text-muted">@book.YearPublished</small></p>
+                                    <div class="mt-auto">
+                                        <button class="btn btn-info btn-sm w-100 mb-1" @onclick="() => ViewBook(book.BookID)">Xem</button>
+                                        <AuthorizeView Roles="admin">
+                                            <button class="btn btn-success btn-sm w-100 mb-1" @onclick="() => EditBook(book.BookID)">Sửa</button>
+                                            <button class="btn btn-danger btn-sm w-100" @onclick="() => ConfirmDeleteBook(book.BookID)">Xóa</button>
+                                        </AuthorizeView>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <AuthorizeView Roles="admin">
+                <div class="text-center mt-4">
+                    <button @onclick="NavigateToAddBook" class="btn btn-primary">Thêm Sách</button>
+                </div>
+            </AuthorizeView>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-info" @onclick="NavigateToViewLoans">Xem Sách Đã Mượn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+@if (showDeleteConfirmation)
+{
+    <div class="modal show" tabindex="-1" style="display: block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteConfirmation"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa sách này không?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDeleteConfirmation">Hủy</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeleteBook">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+}
+
+@code {
+    private List<Book> books;
+    private List<Category> categories;
+    private string searchTerm;
+    private int? selectedCategoryId;
+    private int bookIdToDelete;
+    private bool showDeleteConfirmation = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await DbContext.Categories.ToListAsync();
+        await LoadBooksAsync();
+    }
+
+    private async Task LoadBooksAsync()
+    {
+        var query = DbContext.Books.Include(b => b.Author).Include(b => b.Category).AsQueryable();
+
+        if (selectedCategoryId.HasValue)
+        {
+            query = query.Where(b => b.CategoryID == selectedCategoryId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(b => b.Title.Contains(searchTerm));
+        }
+
+        books = await query.ToListAsync();
+        StateHasChanged(); // Ensure UI is updated
+    }
+
+    private async Task SearchBooks()
+    {
+        await LoadBooksAsync();
+    }
+
+    private async Task ResetSearch()
+    {
+        searchTerm = string.Empty;
+        selectedCategoryId = null; // Reset category filter
+        await LoadBooksAsync();
+    }
+
+    private async void FilterByCategory(int? categoryId)
+    {
+        selectedCategoryId = categoryId;
+        await LoadBooksAsync();
+    }
+
+    private void ViewBook(int bookId)
+    {
+        Navigation.NavigateTo($"/viewbook/{bookId}");
+    }
+
+    private void EditBook(int bookId)
+    {
+        Navigation.NavigateTo($"/editbook/{bookId}");
+    }
+
+    private void ConfirmDeleteBook(int bookId)
+    {
+        bookIdToDelete = bookId;
+        showDeleteConfirmation = true;
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        showDeleteConfirmation = false;
+    }
+
+    private async void DeleteBook()
+    {
+        var loans = await DbContext.Loans.Where(l => l.BookID == bookIdToDelete).ToListAsync();
+        DbContext.Loans.RemoveRange(loans);
+
+        var book = await DbContext.Books.FindAsync(bookIdToDelete);
+        if (book != null)
+        {
+            DbContext.Books.Remove(book);
+            await DbContext.SaveChangesAsync();
+            await LoadBooksAsync();  // Cập nhật lại danh sách sách sau khi xóa
+        }
+        showDeleteConfirmation = false; // Close the confirmation modal
+        StateHasChanged(); // Ensure UI is updated
+    }
+
+    private void NavigateToAddBook()
+    {
+        Navigation.NavigateTo("/addbook");
+    }
+
+    private void NavigateToViewLoans()
+    {
+        Navigation.NavigateTo("/viewloans");
+    }
+}

@@ -1,0 +1,58 @@
+﻿@page "/login"
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@using TienDatQLTV.Services
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-sm" style="width: 30rem;">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Đăng Nhập</h3>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label class="form-label">Tên Đăng Nhập</label>
+                    <InputText class="form-control" @bind-Value="loginModel.Username" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mật Khẩu</label>
+                    <InputText class="form-control" @bind-Value="loginModel.Password" type="password" />
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Đăng Nhập</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private string errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        var user = await DbContext.AuthenticateUser(loginModel.Username, loginModel.Password);
+        if (user != null)
+        {
+            ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(user.Username, user.Role.RoleName);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng.";
+        }
+    }
+}

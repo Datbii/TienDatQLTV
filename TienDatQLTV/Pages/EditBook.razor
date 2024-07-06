@@ -1,0 +1,77 @@
+﻿@page "/editbook/{bookId:int}"
+@attribute [Authorize(Roles = "admin")]
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@code {
+    [Parameter] public int bookId { get; set; }
+    private Book book;
+
+    protected override async Task OnInitializedAsync()
+    {
+        book = await DbContext.Books.FindAsync(bookId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        DbContext.Books.Update(book);
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/books");
+    }
+}
+
+<h3>Sửa Sách</h3>
+
+<EditForm Model="@book" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Tiêu đề</label>
+        <InputText class="form-control" @bind-Value="book.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tác giả</label>
+        <InputNumber class="form-control" @bind-Value="book.AuthorID" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nhà xuất bản</label>
+        <InputText class="form-control" @bind-Value="book.Publisher" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Năm xuất bản</label>
+        <InputNumber class="form-control" @bind-Value="book.YearPublished" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ISBN</label>
+        <InputText class="form-control" @bind-Value="book.ISBN" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Danh mục</label>
+        <InputNumber class="form-control" @bind-Value="book.CategoryID" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Số lượng</label>
+        <InputNumber class="form-control" @bind-Value="book.Quantity" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Có sẵn</label>
+        <InputNumber class="form-control" @bind-Value="book.Available" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">URL Hình ảnh</label>
+        <InputText class="form-control" @bind-Value="book.ImageUrl" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+</EditForm>

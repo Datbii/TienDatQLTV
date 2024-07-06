@@ -1,0 +1,44 @@
+﻿@page "/"
+@page "/viewbook/{bookId:int}"
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Chi Tiết Sách</PageTitle>
+
+<h3>Chi Tiết Sách</h3>
+
+@if (book == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <img src="@book.ImageUrl" alt="Hình ảnh sách" style="width:200px;height:auto;" />
+        <h4>Tiêu đề: @book.Title</h4>
+        <p>Tác giả: @book.Author.AuthorName</p>
+        <p>Nhà xuất bản: @book.Publisher</p>
+        <p>Năm xuất bản: @book.YearPublished</p>
+        <p>Số lượng: @book.Quantity</p>
+        <p>Có sẵn: @book.Available</p>
+        <button class="btn btn-success" @onclick="LoanBook" disabled="@(book.Available <= 0)">Mượn Sách</button>
+    </div>
+}
+
+@code {
+    [Parameter] public int bookId { get; set; }
+    private Book book;
+
+    protected override async Task OnInitializedAsync()
+    {
+        book = await DbContext.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.BookID == bookId);
+    }
+
+    private void LoanBook()
+    {
+        Navigation.NavigateTo($"/loanbook/{book.BookID}");
+    }
+}

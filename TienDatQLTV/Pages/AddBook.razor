@@ -1,0 +1,72 @@
+﻿@page "/addbook"
+@attribute [Authorize(Roles = "admin")]
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<h3>Thêm Sách</h3>
+
+<EditForm Model="@newBook" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Tiêu đề</label>
+        <InputText class="form-control" @bind-Value="newBook.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tác giả</label>
+        <InputNumber class="form-control" @bind-Value="newBook.AuthorID" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nhà xuất bản</label>
+        <InputText class="form-control" @bind-Value="newBook.Publisher" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Năm xuất bản</label>
+        <InputNumber class="form-control" @bind-Value="newBook.YearPublished" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ISBN</label>
+        <InputText class="form-control" @bind-Value="newBook.ISBN" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Danh mục</label>
+        <InputNumber class="form-control" @bind-Value="newBook.CategoryID" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Số lượng</label>
+        <InputNumber class="form-control" @bind-Value="newBook.Quantity" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Có sẵn</label>
+        <InputNumber class="form-control" @bind-Value="newBook.Available" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">URL Hình ảnh</label>
+        <InputText class="form-control" @bind-Value="newBook.ImageUrl" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Thêm Sách</button>
+</EditForm>
+
+@code {
+    private Book newBook = new Book();
+
+    private async Task HandleValidSubmit()
+    {
+        DbContext.Books.Add(newBook);
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/books");
+    }
+}

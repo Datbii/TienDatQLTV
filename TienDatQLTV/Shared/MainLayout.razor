@@ -1,0 +1,85 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationProvider
+@inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
+
+<PageTitle>TienDatQLTV</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+
+            <main>
+                <div class="top-row px-4 auth">
+                    <a href="" @onclick="BeginSignOut">Log out</a>
+                </div>
+
+                <div class="content px-4">
+                    @Body
+                </div>
+            </main>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+            <div class="card shadow-lg border-0" style="width: 30rem;">
+                <div class="card-body p-5">
+                    <h3 class="card-title text-center mb-4">Đăng Nhập</h3>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+
+                    <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit" Context="editContext">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên Đăng Nhập</label>
+                            <InputText class="form-control" @bind-Value="loginModel.Username" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mật Khẩu</label>
+                            <InputText class="form-control" @bind-Value="loginModel.Password" type="password" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Đăng Nhập</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private string errorMessage;
+
+    private async Task BeginSignOut()
+    {
+        ((CustomAuthenticationStateProvider)AuthenticationProvider).MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var user = await DbContext.AuthenticateUser(loginModel.Username, loginModel.Password);
+        if (user != null)
+        {
+            ((CustomAuthenticationStateProvider)AuthenticationProvider).MarkUserAsAuthenticated(user.Username, user.Role.RoleName);
+            Navigation.NavigateTo("/books"); // Redirect to /books page after successful login
+        }
+        else
+        {
+            errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng.";
+        }
+    }
+}

@@ -1,0 +1,12 @@
+﻿@page "/logout"
+@using TienDatQLTV.Services  // Thêm dòng này
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/login");
+    }
+}

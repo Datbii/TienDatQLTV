@@ -1,0 +1,83 @@
+﻿@page "/viewloans/{memberId:int}"
+@using Microsoft.EntityFrameworkCore
+@using TienDatQLTV.Data
+@using TienDatQLTV.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Sách Đã Mượn</PageTitle>
+
+<h3>Sách Đã Mượn</h3>
+
+@if (loans == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tiêu đề</th>
+                <th>Tác giả</th>
+                <th>Ngày mượn</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loan in loans)
+            {
+                <tr>
+                    <td>@loan.Book.Title</td>
+                    <td>@loan.Book.Author.AuthorName</td>
+                    <td>@loan.LoanDate.ToString("yyyy-MM-dd")</td>
+                    <td>@loan.Status</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => ReturnBook(loan.LoanID)"
+                                disabled="@(loan.Status == "Đã trả")">
+                            Trả Sách
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public int memberId { get; set; }
+    private List<Loan> loans;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loans = await DbContext.Loans
+            .Include(l => l.Book)
+            .ThenInclude(b => b.Author)
+            .Where(l => l.MemberID == memberId)
+            .ToListAsync();
+    }
+
+    private async Task ReturnBook(int loanId)
+    {
+        var loan = await DbContext.Loans.FindAsync(loanId);
+        if (loan != null)
+        {
+            loan.Status = "Đã trả";
+            loan.ReturnDate = DateTime.Now;
+
+            var book = await DbContext.Books.FindAsync(loan.BookID);
+            if (book != null)
+            {
+                book.Available += 1;
+            }
+
+            await DbContext.SaveChangesAsync();
+            loans = await DbContext.Loans
+                .Include(l => l.Book)
+                .ThenInclude(b => b.Author)
+                .Where(l => l.MemberID == memberId)
+                .ToListAsync();
+        }
+    }
+}
